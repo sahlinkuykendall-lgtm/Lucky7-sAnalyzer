@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+  :root{--bg:#0a0a0f;--bg2:#111118;--border:#1e1e30;--border2:#2a2a40;--text:#e8e8f0;--text2:#aaaabc;--text3:#666680;--gold:#f5c518;--gold2:#e6a800;--gold-glow:rgba(245,197,24,0.18);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:#0a0a0f!important;color:var(--text);font-family:'Courier New',monospace;min-height:100%;-webkit-tap-highlight-color:transparent;}
+  .luck-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .luck-symbol{position:absolute;opacity:0.06;animation:floatUp linear infinite;user-select:none;}
+  @keyframes floatUp{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:0.06;}90%{opacity:0.06;}100%{transform:translateY(-120px) rotate(360deg);opacity:0;}}
+  .wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:28px 16px 50px;}
+  .header{text-align:center;margin-bottom:32px;}
+  .dice-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px;}
+  .dice{width:38px;height:38px;background:linear-gradient(135deg,#1a1a2e,#222235);border:1.5px solid var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 12px var(--gold-glow);animation:dp 3s ease-in-out infinite;}
+  @keyframes dp{0%,100%{box-shadow:0 0 12px var(--gold-glow);}50%{box-shadow:0 0 24px rgba(245,197,24,0.35);}}
+  h1{font-family:Impact,sans-serif;font-size:clamp(26px,6vw,46px);letter-spacing:4px;background:linear-gradient(135deg,#fff 0%,var(--gold) 60%,var(--gold2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+  .sub{color:var(--text3);font-size:11px;letter-spacing:2px;margin-top:6px;}
+  .strip{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:24px;}
+  .si{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;}
+  .si span{color:var(--gold);}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:14px;position:relative;overflow:hidden;}
+  .card::before{content:'7';position:absolute;right:-10px;top:-16px;font-family:Impact,sans-serif;font-size:110px;color:var(--gold);opacity:0.03;pointer-events:none;line-height:1;}
+  .clabel{font-size:10px;letter-spacing:4px;color:var(--text3);text-transform:uppercase;margin-bottom:16px;}
+  .clabel::before{content:'🍀 ';}
+  .sgrid{display:flex;gap:8px;flex-wrap:wrap;}
+  .sbtn{background:rgba(255,255,255,0.03);border:1.5px solid var(--border2);border-radius:10px;padding:9px 16px;color:var(--text3);font-size:13px;font-family:inherit;cursor:pointer;transition:all 0.2s;}
+  .sbtn.active{color:var(--gold);border-color:var(--gold);background:rgba(245,197,24,0.07);box-shadow:0 0 14px var(--gold-glow);}
+  .igrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  @media(max-width:480px){.igrid{grid-template-columns:1fr;}}
+  .fl{font-size:10px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;}
+  input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border 0.2s;color-scheme:dark;}
+  input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow);}
+  input::placeholder{color:var(--text3);}
+  .tbadge{display:inline-flex;align-items:center;gap:6px;background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.25);border-radius:8px;padding:7px 13px;font-size:11px;color:var(--gold);margin-bottom:12px;}
+  .gbtn{width:100%;background:rgba(255,255,255,0.04);border:1.5px solid var(--border2);border-radius:12px;padding:15px;color:var(--text3);font-size:12px;font-family:inherit;letter-spacing:2px;text-transform:uppercase;cursor:not-allowed;transition:all 0.25s;margin-top:4px;}
+  .gbtn.ready{background:linear-gradient(135deg,var(--gold),var(--gold2));border-color:var(--gold);color:#000;cursor:pointer;font-weight:bold;box-shadow:0 5px 24px var(--gold-glow);}
+  .lcard{text-align:center;padding:44px 24px;}
+  .spin{width:52px;height:52px;margin:0 auto 18px;position:relative;}
+  .spin::before{content:'7';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Impact,sans-serif;font-size:26px;color:var(--gold);animation:sg 1.2s ease-in-out infinite;}
+  .spin::after{content:'';position:absolute;inset:0;border:3px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:sp 1s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+  @keyframes sg{0%,100%{opacity:0.6;}50%{opacity:1;}}
+  .lm{color:var(--gold);font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-bottom:5px;}
+  .ls{color:var(--text3);font-size:11px;}
+  .ll{font-size:18px;margin-top:14px;animation:lb 1s ease-in-out infinite;}
+  @keyframes lb{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .rcard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;}
+  .rnav{display:flex;gap:7px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2);}
+  .snbtn{background:transparent;border:1px solid var(--border2);border-radius:7px;padding:4px 11px;color:var(--text3);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;}
+  .snbtn.active{color:var(--gold);border-color:var(--gold);background:rgba(245,197,24,0.06);}
+  .rbody{padding:24px;max-height:620px;overflow-y:auto;}
+  .rfooter{display:flex;gap:9px;padding:12px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,0.2);align-items:center;}
+  .fbtn{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:7px 16px;color:var(--text3);font-size:11px;font-family:inherit;cursor:pointer;transition:all 0.15s;}
+  .fbtn.p{color:var(--gold);border-color:var(--gold);}
+  .fl2{margin-left:auto;font-size:15px;opacity:0.5;}
+  .md h1{font-family:Impact,sans-serif;font-size:21px;letter-spacing:3px;color:#fff;margin:0 0 3px;}
+  .md h3{font-size:11px;color:var(--text3);font-weight:normal;letter-spacing:2px;margin:2px 0 18px;}
+  .md h2{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin:24px 0 12px;border-left:2px solid var(--gold);padding-left:9px;}
+  .md table{width:100%;border-collapse:collapse;margin:9px 0 16px;font-size:12px;}
+  .md td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text2);}
+  .md tr:first-child td{color:var(--gold);font-weight:bold;background:rgba(245,197,24,0.04);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;}
+  .md blockquote{background:rgba(245,197,24,0.05);border-left:2px solid var(--gold);border-radius:0 8px 8px 0;padding:9px 13px;margin:9px 0;font-size:13px;color:var(--text2);}
+  .md ul{padding-left:17px;margin:5px 0 9px;}
+  .md li{margin:3px 0;font-size:13px;color:var(--text2);line-height:1.6;}
+  .md hr{border:none;border-top:1px solid var(--border);margin:20px 0;}
+  .md p{font-size:13px;line-height:1.75;color:var(--text2);margin:5px 0;}
+  .md strong{color:#fff;font-weight:bold;}
+  .md em{color:var(--text3);font-style:italic;}
+  .pfoot{text-align:center;color:var(--text3);font-size:10px;letter-spacing:2px;margin-top:12px;}
+  .hidden{display:none!important;}
+</style>
+</head>
+<body>
+<div class="luck-bg" id="luckBg"></div>
+<div class="wrap">
+  <div class="header">
+    <div class="dice-row">
+      <div class="dice">🎲</div>
+      <h1>LUCKY 7'S<br>GAME ANALYZER</h1>
+      <div class="dice">🎰</div>
+    </div>
+    <div class="sub">🍀 Professional Betting Intelligence 🍀</div>
+  </div>
+  <div class="strip">
+    <div class="si"><span>🎯</span> Precision</div>
+    <div class="si"><span>7️⃣</span> Categories</div>
+    <div class="si"><span>🍀</span> Lucky Picks</div>
+    <div class="si"><span>🎰</span> Win Probability</div>
+  </div>
+  <div class="card">
+    <div class="clabel">01 — Select Sport</div>
+    <div class="sgrid">
+      <button class="sbtn" data-sport="basketball">🏀 Basketball</button>
+      <button class="sbtn" data-sport="soccer">⚽ Soccer</button>
+      <button class="sbtn" data-sport="tennis">🎾 Tennis</button>
+      <button class="sbtn" data-sport="hockey">🏒 Hockey</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="clabel">02 — Match Details</div>
+    <div class="tbadge" id="tbadge">📅 Today: —</div>
+    <div class="igrid">
+      <div><div class="fl" id="l1">Team 1 (Away)</div><input type="text" id="t1" placeholder="e.g. Lakers or Duke"/></div>
+      <div><div class="fl" id="l2">Team 2 (Home)</div><input type="text" id="t2" placeholder="e.g. Celtics or Kentucky"/></div>
+    </div>
+    <div class="igrid" style="grid-template-columns:1fr 1fr;">
+      <div><div class="fl">Date <span style="color:var(--gold);font-size:9px;">(auto)</span></div><input type="date" id="dt"/></div>
+      <div id="sw" class="hidden"><div class="fl">Surface</div><input type="text" id="surf" placeholder="Clay / Hard / Grass"/></div>
+    </div>
+    <button class="gbtn" id="gbtn" disabled>Select a sport above to continue</button>
+  </div>
+  <div class="card lcard hidden" id="lcard">
+    <div class="spin"></div>
+    <div class="lm" id="ltxt">Rolling the dice...</div>
+    <div class="ls">Searching stats, injuries & H2H records</div>
+    <div class="ll">🍀 🎲 7️⃣ 🎰 🍀</div>
+  </div>
+  <div class="rcard hidden" id="rcard">
+    <div class="rnav" id="rnav"></div>
+    <div class="rbody"><div class="md" id="aout"></div></div>
+    <div class="rfooter">
+      <button class="fbtn" onclick="resetAll()">New Analysis</button>
+      <button class="fbtn p" onclick="doGenerate()">🔄 Regenerate</button>
+      <span class="fl2">🍀 7️⃣ 🎲</span>
+    </div>
+  </div>
+  <div class="pfoot">🍀 Lucky 7's • For entertainment only • Bet responsibly 🎲</div>
+</div>
+<script>
+const syms=['7','🍀','🎲','🎰','♣','♠','♦','♥','★'];
+const lb=document.getElementById('luckBg');
+for(let i=0;i<20;i++){const e=document.createElement('div');e.className='luck-symbol';e.textContent=syms[Math.floor(Math.random()*syms.length)];e.style.left=Math.random()*100+'%';e.style.fontSize=(11+Math.random()*15)+'px';e.style.animationDuration=(11+Math.random()*18)+'s';e.style.animationDelay=(-Math.random()*22)+'s';lb.appendChild(e);}
+const now=new Date();
+const yyyy=now.getFullYear(),mm=String(now.getMonth()+1).padStart(2,'0'),dd=String(now.getDate()).padStart(2,'0');
+const todayStr=`${yyyy}-${mm}-${dd}`;
+const todayDisplay=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('dt').value=todayStr;
+document.getElementById('tbadge').textContent='📅 '+todayDisplay;
+
+const SECTS={
+  basketball:["Last 5 H2H","Home/Away Trends","Injuries","H2H Comparison","Quarter Tendencies","Prediction & Betting","Edge Tally"],
+  soccer:["Last 5 H2H","Home/Away Trends","Injuries & Suspensions","H2H Comparison","Tactical Tendencies","Prediction & Betting","Edge Tally"],
+  tennis:["Last 5 H2H","Surface Trends","Physical Form","H2H Comparison","Game Style","Prediction & Betting","Edge Tally"],
+  hockey:["Last 5 H2H","Home/Away Trends","Injuries & Goalies","H2H Comparison","Period Tendencies","Prediction & Betting","Edge Tally"]
+};
+
+let sport=null,analysis='',activeS=-1;
+
+document.querySelectorAll('.sbtn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.sbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');sport=b.dataset.sport;updateLabels();updateBtn();
+  });
+});
+['t1','t2'].forEach(id=>document.getElementById(id).addEventListener('input',updateBtn));
+
+function updateLabels(){
+  const isTen=sport==='tennis',isSoc=sport==='soccer';
+  document.getElementById('l1').textContent=isTen?'Player 1':'Team 1 (Away)';
+  document.getElementById('l2').textContent=isTen?'Player 2':'Team 2 (Home)';
+  document.getElementById('t1').placeholder=isTen?'e.g. Djokovic':isSoc?'e.g. Arsenal':'e.g. Lakers or Duke';
+  document.getElementById('t2').placeholder=isTen?'e.g. Alcaraz':isSoc?'e.g. Chelsea':'e.g. Celtics or Kentucky';
+  document.getElementById('sw').classList.toggle('hidden',!isTen);
+}
+function updateBtn(){
+  const btn=document.getElementById('gbtn'),v1=document.getElementById('t1').value.trim(),v2=document.getElementById('t2').value.trim();
+  if(!sport){btn.disabled=true;btn.classList.remove('ready');btn.textContent='Select a sport above to continue';}
+  else if(!v1||!v2){btn.disabled=true;btn.classList.remove('ready');btn.textContent='Enter both team names to continue';}
+  else{btn.disabled=false;btn.classList.add('ready');btn.textContent=`🍀 Analyze ${v1} vs ${v2} →`;}
+}
+document.getElementById('gbtn').addEventListener('click',doGenerate);
+
+function detectLeague(a,b){
+  const nba=['hawks','celtics','nets','hornets','bulls','cavaliers','mavericks','nuggets','pistons','warriors','rockets','pacers','clippers','lakers','grizzlies','heat','bucks','timberwolves','pelicans','knicks','thunder','magic','76ers','suns','blazers','kings','spurs','raptors','jazz','wizards'];
+  const cities=['atlanta','boston','brooklyn','charlotte','chicago','cleveland','dallas','denver','detroit','golden state','houston','indiana','los angeles','memphis','miami','milwaukee','minnesota','new orleans','new york','oklahoma','orlando','philadelphia','phoenix','portland','sacramento','san antonio','toronto','utah','washington'];
+  const al=a.toLowerCase(),bl=b.toLowerCase();
+  if(nba.some(t=>al.includes(t)||bl.includes(t)))return'nba';
+  if(cities.some(c=>al.includes(c)||bl.includes(c)))return'nba';
+  return'ncaab';
+}
+
+function buildPrompt(sp,t1,t2,d,surf){
+  let actual=sp==='basketball'?detectLeague(t1,t2):sp;
+  const icons={nba:'🏀',ncaab:'🏀',soccer:'⚽',tennis:'🎾',hockey:'🏒'};
+  const icon=icons[actual]||'🏀';
+  const vs=actual==='tennis'?'vs':'@';
+  const label=actual==='nba'?'NBA':actual==='ncaab'?'NCAA Basketball':actual.toUpperCase();
+  const hdr=`# ${icon} ${t1} ${vs} ${t2}\n### ${d||todayDisplay}`;
+  const base=`You are a professional sports betting analyst. Generate a COMPLETE detailed game analysis. Use REAL current statistics, records, and injury info. Be specific with actual numbers — no placeholders.\n\nMATCHUP: ${t1} vs ${t2}\nSPORT: ${label}\nDATE: ${d||todayStr}\n${surf?'SURFACE: '+surf+'\n':''}\nStart directly with the header:\n\n${hdr}\n\n---\n\n`;
+
+  if(actual==='nba'||actual==='ncaab'){return base+`## 1️⃣ Last 5 H2H Meetings
+| Date | Matchup | Score | Winner |
+|---|---|---|---|
+[5 real rows with actual scores]
+> Brief H2H summary note
+
+## 2️⃣ Home/Away Trends
+**${t1}** — home record, away record, recent form, strongest split noted
+**${t2}** — home record, away record, recent form, strongest split noted
+> **Edge: [TEAM]** — specific reason
+
+## 3️⃣ Key Factors & Injuries
+**${t1} — Injuries**
+- All known injuries with OUT/QUESTIONABLE/GTD status
+**${t2} — Injuries**
+- All known injuries with OUT/QUESTIONABLE/GTD status
+**Storyline to Watch**
+Key narrative paragraph with specific details
+
+## 4️⃣ Head-to-Head Comparison
+| Category | ${t1} | ${t2} | Edge |
+|---|---|---|---|
+| Record | | | |
+| PPG | | | |
+| Opp PPG | | | |
+| Net Rating | | | |
+| FG% | | | |
+| Reb/G | | | |
+| Ast/G | | | |
+| Top Scorer | | | |
+| Last 10 | | | |
+| Season Series | | | |
+> **Overall Edge: [TEAM]** — reason
+
+## 5️⃣ Per-Quarter Tendencies
+**${t1}**
+| Period | Avg Points | Notes |
+|---|---|---|
+| 1st Half | X PPG | specific note |
+| 2nd Half | X PPG | specific note |
+**${t2}**
+| Period | Avg Points | Notes |
+|---|---|---|
+| 1st Half | X PPG | specific note |
+| 2nd Half | X PPG | specific note |
+> **1st Half Edge: [TEAM]** — reason
+> **2nd Half Edge: [TEAM]** — reason
+
+## 6️⃣ Prediction & Betting
+**Predicted Score: ${t1} X — ${t2} X**
+| | |
+|---|---|
+| Winner | |
+| Spread | |
+| O/U | |
+Detailed rationale paragraph
+**Is the underdog worth it?**
+Detailed underdog analysis
+
+## 7️⃣ Edge Tally
+| # | Category | Edge |
+|---|---|---|
+| 1 | H2H Record & Trends | |
+| 2 | Home/Away Trends | |
+| 3 | Key Factors / Injuries | |
+| 4 | Overall Comparison | |
+| 5 | Per-Quarter Tendencies | |
+| 6 | Prediction Indicators | |
+**[emoji] ${t1} — X pts** *(Categories X, X, X)*
+**[emoji] ${t2} — X pts** *(Categories X, X, X)*
+**Wildcard:** Specific unpredictable factor + **Edge: [TEAM]**
+
+## Win Probability Estimate
+| Team | Probability |
+|---|---|
+| [emoji] ${t1} | X% |
+| [emoji] ${t2} | X% |
+*Based solely on category edges 1–7 including Wildcard.*
+---
+> *For entertainment purposes only. Please bet responsibly.*`;}
+
+  if(actual==='soccer'){return base+`## 1️⃣ Last 5 H2H Meetings
+| Date | Matchup | Score | Winner |
+|---|---|---|---|
+[5 real rows]
+> Brief H2H summary
+
+## 2️⃣ Home/Away Trends
+**${t1}** — home record, away record, goals scored/conceded per game, recent form, strongest split
+**${t2}** — home record, away record, goals scored/conceded per game, recent form, strongest split
+> **Edge: [TEAM]** — reason
+
+## 3️⃣ Injuries & Suspensions
+**${t1} — Injuries:** list with status
+**${t1} — Suspensions:** list or None
+**${t2} — Injuries:** list with status
+**${t2} — Suspensions:** list or None
+
+## 4️⃣ Head-to-Head Comparison
+| Category | ${t1} | ${t2} | Edge |
+|---|---|---|---|
+| League Position | | | |
+| Goals Scored/G | | | |
+| Goals Allowed/G | | | |
+| Possession % | | | |
+| Shots on Target/G | | | |
+| Clean Sheets | | | |
+| Top Scorer | | | |
+| Last 10 Form | | | |
+> **Overall Edge: [TEAM]** — reason
+
+## 5️⃣ Tactical Tendencies
+**${t1} — [Formation]:** style, pressing approach, set piece threat, strengths and weaknesses
+**${t2} — [Formation]:** style, pressing approach, set piece threat, strengths and weaknesses
+> **Attacking Edge: [TEAM]**
+> **Defensive Edge: [TEAM]**
+
+## 6️⃣ Prediction & Betting
+**Predicted Score: ${t1} X — ${t2} X**
+| | |
+|---|---|
+| Match Winner | |
+| Both Teams to Score | Yes / No |
+| Over/Under | X.X goals — lean OVER/UNDER |
+| Asian Handicap | |
+Detailed rationale paragraph
+**Is the underdog worth it?**
+Detailed underdog analysis
+
+## 7️⃣ Edge Tally
+| # | Category | Edge |
+|---|---|---|
+| 1 | H2H Record & Trends | |
+| 2 | Home/Away Trends | |
+| 3 | Injuries & Suspensions | |
+| 4 | Overall Comparison | |
+| 5 | Tactical Tendencies | |
+| 6 | Prediction Indicators | |
+**[emoji] ${t1} — X pts** *(Categories)*
+**[emoji] ${t2} — X pts** *(Categories)*
+**Wildcard:** Specific factor + **Edge: [TEAM]**
+
+## Win Probability
+| Result | % |
+|---|---|
+| [emoji] ${t1} Win | X% |
+| ➖ Draw | X% |
+| [emoji] ${t2} Win | X% |
+---
+> *For entertainment purposes only. Please bet responsibly.*`;}
+
+  if(actual==='tennis'){return base+`## 1️⃣ Last 5 H2H
+| Date | Tournament | Surface | Score | Winner |
+|---|---|---|---|---|
+[5 real rows]
+> Brief H2H summary
+
+## 2️⃣ Surface & Tournament Trends
+**${t1}** — record on ${surf||'this surface'}, recent tournament results, comfort level
+**${t2}** — record on ${surf||'this surface'}, recent tournament results, comfort level
+> **Edge: [PLAYER]** — reason
+
+## 3️⃣ Physical & Form Concerns
+**${t1}** — injuries, fatigue, recent match load
+**${t2}** — injuries, fatigue, recent match load
+
+## 4️⃣ Head-to-Head Comparison
+| Category | ${t1} | ${t2} | Edge |
+|---|---|---|---|
+| World Ranking | | | |
+| Surface Win % | | | |
+| 1st Serve % | | | |
+| Aces/Match | | | |
+| Break Points Won % | | | |
+| Return Points Won % | | | |
+| Tiebreak Record | | | |
+| Last 10 Form | | | |
+> **Overall Edge: [PLAYER]** — reason
+
+## 5️⃣ Game Style & Tendencies
+**${t1}** — playing style, strengths, weaknesses, mental game
+**${t2}** — playing style, strengths, weaknesses, mental game
+> **Serve Edge: [PLAYER]**
+> **Return Edge: [PLAYER]**
+> **Mental Edge: [PLAYER]**
+
+## 6️⃣ Prediction & Betting
+**Predicted Score: ${t1} [X-X] ${t2}**
+| | |
+|---|---|
+| Match Winner | |
+| Total Sets | Over / Under |
+| First Set Winner | |
+| Will it go 3 Sets? | Yes / No |
+Detailed rationale paragraph
+**Is the underdog worth it?**
+Detailed underdog analysis
+
+## 7️⃣ Edge Tally
+| # | Category | Edge |
+|---|---|---|
+| 1 | H2H Record & Trends | |
+| 2 | Surface & Tournament Trends | |
+| 3 | Physical & Form Concerns | |
+| 4 | Overall Comparison | |
+| 5 | Game Style & Tendencies | |
+| 6 | Prediction Indicators | |
+**[emoji] ${t1} — X pts** *(Categories)*
+**[emoji] ${t2} — X pts** *(Categories)*
+**Wildcard:** Specific factor + **Edge: [PLAYER]**
+
+## Win Probability
+| Player | % |
+|---|---|
+| [emoji] ${t1} | X% |
+| [emoji] ${t2} | X% |
+---
+> *For entertainment purposes only. Please bet responsibly.*`;}
+
+  if(actual==='hockey'){return base+`## 1️⃣ Last 5 H2H Meetings
+| Date | Matchup | Score | Winner |
+|---|---|---|---|
+[5 real rows]
+> Brief H2H summary
+
+## 2️⃣ Home/Away Trends
+**${t1}** — home record, away record, goals scored/allowed, power play %, strongest split
+**${t2}** — home record, away record, goals scored/allowed, power play %, strongest split
+> **Edge: [TEAM]** — reason
+
+## 3️⃣ Injuries & Lineup / Goalies
+**${t1} — Injuries:** list with status
+**${t1} — Starting Goalie:** name, save %, GAA
+**${t2} — Injuries:** list with status
+**${t2} — Starting Goalie:** name, save %, GAA
+
+## 4️⃣ Head-to-Head Comparison
+| Category | ${t1} | ${t2} | Edge |
+|---|---|---|---|
+| Record (W-L-OTL) | | | |
+| Goals/Game | | | |
+| Goals Against/Game | | | |
+| Power Play % | | | |
+| Penalty Kill % | | | |
+| Shots/Game | | | |
+| Save % | | | |
+| Top Scorer | | | |
+| Last 10 Form | | | |
+> **Overall Edge: [TEAM]** — reason
+
+## 5️⃣ Period Tendencies
+**${t1}**
+| Period | Avg Goals | Notes |
+|---|---|---|
+| 1st Period | | |
+| 2nd Period | | |
+| 3rd Period | | |
+**${t2}**
+| Period | Avg Goals | Notes |
+|---|---|---|
+| 1st Period | | |
+| 2nd Period | | |
+| 3rd Period | | |
+> **1st Period Edge: [TEAM]**
+> **3rd Period Edge: [TEAM]**
+
+## 6️⃣ Prediction & Betting
+**Predicted Score: ${t1} X — ${t2} X**
+| | |
+|---|---|
+| Winner (Regulation) | |
+| Moneyline | |
+| Puck Line (-1.5) | |
+| Over/Under | X.X goals — lean OVER/UNDER |
+Detailed rationale paragraph
+**Is the underdog worth it?**
+Detailed underdog analysis
+
+## 7️⃣ Edge Tally
+| # | Category | Edge |
+|---|---|---|
+| 1 | H2H Record & Trends | |
+| 2 | Home/Away Trends | |
+| 3 | Injuries & Lineup | |
+| 4 | Overall Comparison | |
+| 5 | Period Tendencies | |
+| 6 | Prediction Indicators | |
+**[emoji] ${t1} — X pts** *(Categories)*
+**[emoji] ${t2} — X pts** *(Categories)*
+**Wildcard:** Specific factor + **Edge: [TEAM]**
+
+## Win Probability
+| Result | % |
+|---|---|
+| [emoji] ${t1} Win | X% |
+| OT/SO | X% |
+| [emoji] ${t2} Win | X% |
+---
+> *For entertainment purposes only. Please bet responsibly.*`;}
+}
+
+async function doGenerate(){
+  const v1=document.getElementById('t1').value.trim(),v2=document.getElementById('t2').value.trim();
+  if(!v1||!v2||!sport)return;
+  const d=document.getElementById('dt').value,surf=document.getElementById('surf').value;
+  document.getElementById('rcard').classList.add('hidden');
+  document.getElementById('lcard').classList.remove('hidden');
+  const msgs=[`Rolling the dice on ${v1} vs ${v2}...`,'Checking injury reports...','Analyzing H2H records...','Compiling stats...','Finding your edge...','Almost there... 🍀'];
+  let mi=0;
+  const tick=setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('ltxt').textContent=msgs[mi];},2200);
+  try{
+    const prompt=buildPrompt(sport,v1,v2,d,surf);
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    analysis=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+  }catch(e){analysis='## Error\nCould not generate analysis. Please check your connection and try again.';}
+  clearInterval(tick);
+  document.getElementById('lcard').classList.add('hidden');
+  showResults();
+}
+
+function showResults(){
+  activeS=-1;buildNav();renderA();
+  document.getElementById('rcard').classList.remove('hidden');
+  document.getElementById('rcard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function buildNav(){
+  const sects=SECTS[sport]||SECTS.basketball;
+  let h=`<button class="snbtn active" onclick="setS(-1)">Full Report</button>`;
+  sects.forEach((s,i)=>{h+=`<button class="snbtn" onclick="setS(${i+1})">${i+1}. ${s}</button>`;});
+  document.getElementById('rnav').innerHTML=h;
+}
+function setS(n){
+  activeS=n;
+  document.querySelectorAll('.snbtn').forEach((b,i)=>{b.classList.toggle('active',n===-1?i===0:i===n);});
+  renderA();
+}
+function renderA(){
+  let txt=analysis;
+  if(activeS>0){const parts=txt.split(/(?=## \d)/);const f=parts.find(p=>p.match(new RegExp(`^## ${activeS}[^\\d]`)));if(f)txt=f;}
+  document.getElementById('aout').innerHTML=md(txt);
+}
+function md(t){
+  return t
+    .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*([^*\n]+)\*/g,'<em>$1</em>')
+    .replace(/^---$/gm,'<hr/>')
+    .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^(\|.+\|)$/gm,m=>{const c=m.split('|').slice(1,-1).map(x=>x.trim());return'<tr>'+c.map(x=>`<td>${x}</td>`).join('')+'</tr>';})
+    .replace(/(<tr>[\s\S]*?<\/tr>\n?)+/g,s=>`<table>${s}</table>`)
+    .replace(/^[-*] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>\n?)+/g,s=>`<ul>${s}</ul>`)
+    .replace(/\n{2,}/g,'\n')
+    .replace(/^(?!<)([^\n<][^\n]*)$/gm,'<p>$1</p>');
+}
+function resetAll(){
+  document.getElementById('rcard').classList.add('hidden');
+  document.getElementById('t1').value='';document.getElementById('t2').value='';
+  document.getElementById('surf').value='';document.getElementById('dt').value=todayStr;
+  analysis='';updateBtn();window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
